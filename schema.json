@@ -1,0 +1,101 @@
+{
+	"table": [
+	    {
+            "name": "DFAC_Shared_View__c",
+            "label": "DreamFactory Shared View",
+            "plural": "DreamFactory Shared Views",
+            "field": [
+                {
+                    "name": "Id",
+                    "label": "Record ID",
+                    "type": "id"
+                },
+                {
+                    "name": "Application__c",
+                    "label": "Application",
+                    "type": "text"
+                },
+                {
+                    "name": "Data__c",
+                    "label": "Data",
+                    "type": "text"
+                },
+                {
+                    "name": "Description__c",
+                    "label": "Description",
+                    "type": "string",
+                    "size": 255
+                },
+                {
+                    "name": "Expansion__c",
+                    "label": "Expansion",
+                    "type": "text"
+                },
+                {
+                    "name": "Extra_Field__c",
+                    "label": "Extra Field",
+                    "type": "string",
+                    "size": 255
+                },
+                {
+                    "name": "Name",
+                    "label": "Name",
+                    "type": "string",
+                    "size": 80,
+                    "allow_null": false
+                },
+                {
+                    "name": "Owner__c",
+                    "label": "Owner",
+                    "type": "reference",
+                    "ref_table": "df_sys_user",
+                    "ref_fields": "id"
+                },
+                {
+                    "name": "Private__c",
+                    "label": "Private",
+                    "type": "boolean"
+                },
+                {
+                    "name": "Version__c",
+                    "label": "Version",
+                    "type": "double",
+                    "precision": 18,
+                    "scale": 2
+                },
+                {
+                    "name": "CreatedById",
+                    "label": "Created By ID",
+                    "type": "user_id_on_create",
+                    "validation": "api_read_only"
+                },
+                {
+                    "name": "CreatedDate",
+                    "label": "Created Date",
+                    "type": "timestamp_on_create",
+                    "validation": "api_read_only"
+                },
+                {
+                    "name": "LastModifiedById",
+                    "label": "Last Modified By ID",
+                    "type": "user_id_on_update",
+                    "validation": "api_read_only"
+                },
+                {
+                    "name": "LastModifiedDate",
+                    "label": "Last Modified Date",
+                    "type": "timestamp_on_update",
+                    "validation": "api_read_only"
+                },
+                {
+                    "name": "OwnerId",
+                    "label": "Owner ID",
+                    "type": "reference",
+                    "ref_table": "df_sys_user",
+                    "ref_fields": "id",
+                    "allow_null": true
+                }
+            ]
+        }
+    ]
+}

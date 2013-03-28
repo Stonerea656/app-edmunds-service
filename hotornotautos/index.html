@@ -1,0 +1,305 @@
+<html>
+<head>
+<meta charset="utf-8">
+<!-- jQuery Imports -->
+<script type="text/javascript" src="/lib/web-core/js/jquery.js"></script>
+<script type="text/javascript" src="/lib/web-core/js/jquery-ui-1.9.2.custom.min.js"></script>
+<link rel="stylesheet" href="/lib/web-core/css/custom-theme/jquery-ui-1.8.16.custom.css" type="text/css" />
+<!-- DF Imports -->
+
+<script type="text/javascript">
+
+var makeModelData = null;
+var modelYearData = null;
+var photoData = null;
+var currentMake = '';
+var currentModel = '';
+var currentStyle = '';
+
+function photoBaseUrl() {
+
+    return "http://media.ed.edmunds-media.com";
+};
+
+$(document).ready(function() {
+
+    // get all makes and models
+    showMsg('Loading makes and models...');
+    $.ajax({
+        dataType:'json',
+        url:'http://' + location.host + '/rest/edmunds/vehicle/makerepository/findall',
+        data:'app_name=HotOrNotAutos&method=GET',
+        cache:false,
+        success:function (response) {
+            processMakeModelData(response);
+        },
+        error:function (response) {
+            showError("There was an error loading the make and model data.");
+        }
+    });
+});
+
+function processMakeModelData(data) {
+    var numMakes;
+
+    makeModelData = data;
+    numMakes = countMakes();
+    if (numMakes == 0) {
+        showError("There was an error loading the make data.");
+        return;
+    }
+    loadRandomImage();
+}
+
+function loadRandomImage() {
+    var makeIndex, makeName, modelIndex, modelName, numModels;
+
+    currentMake = '';
+    currentModel = '';
+    currentStyle = '';
+    makeIndex = Math.floor(Math.random() * countMakes());
+    makeName = makeModelData.makeHolder[makeIndex].niceName;
+    //makeName = "jaguar";
+    currentMake = makeName;
+    numModels = countModels(makeIndex);
+    if (numModels == 0) {
+        showError("There was an error loading the model data.");
+        return;
+    }
+    modelIndex = Math.floor(Math.random() * numModels);
+    modelName = makeModelData.makeHolder[makeIndex].models[modelIndex].name;
+    //modelName = "XJR";
+    currentModel = modelName;
+    showMsg('Loading model year data...');
+    // get model years for selected make and model
+    $.ajax({
+        dataType:'json',
+        url:'http://' + location.host + '/rest/edmunds/vehicle/modelyearrepository/findmodelyearsbymakemodel',
+        data:'app_name=HotOrNotAutos&method=GET&make=' + makeName + '&model=' + modelName,
+        cache:false,
+        success:function (response) {
+            processModelYearData(response);
+        },
+        error:function (response) {
+            showError("There was an error loading the model year data.");
+        }
+    });
+}
+
+function processModelYearData(data) {
+    var numModelYears, modelYearIndex, numStyles, styleIndex, styleId, styleName;
+
+    modelYearData = data;
+    numModelYears = countModelYears();
+    if (numModelYears == 0) {
+        showError("There was an error loading the model year data.");
+        return;
+    }
+    modelYearIndex = Math.floor(Math.random() * numModelYears);
+    numStyles = countStyles(modelYearIndex);
+    styleIndex = Math.floor(Math.random() * numStyles);
+    styleId = modelYearData.modelYearHolder[modelYearIndex].styles[styleIndex].id;
+    //styleId = "3333";
+    currentStyle = styleId;
+    styleName = modelYearData.modelYearHolder[modelYearIndex].styles[styleIndex].name;
+    getPhotosByStyle(styleId);
+}
+
+function getPhotosByStyle(styleId) {
+
+    showMsg('Loading photos...');
+    // get photos for selected styleId
+    $.ajax({
+        dataType:'json',
+        url:'http://' + location.host + '/rest/edmunds/vehiclephoto/service/findphotosbystyleid',
+        data:'app_name=HotOrNotAutos&method=GET&styleId=' + styleId,
+        cache:false,
+        success:function (response) {
+            processPhotoData(response);
+        },
+        error:function (response) {
+            showError("There was an error loading the photo data.");
+        }
+    });
+}
+
+function processPhotoData(data) {
+
+    photoData = data;
+    var photos = getPhotos();
+    if (photos.length == 0) {
+        showError('No photo available.');
+        return;
+    }
+    showMsg('Loading votes...');
+    var name = currentMake+"##"+currentModel+"##"+currentStyle;
+    $.ajax({
+        dataType:'json',
+        url:'http://' + location.host + '/rest/db/DFAC_Shared_View__c',
+        data:'app_name=HotOrNotAutos&method=GET&filter=' + escape("Name='" + name + "'") + '&fields=' + escape('Id,Version__c'),
+        cache:false,
+        success:function (response) {
+            var index = Math.floor(Math.random() * photos.length);
+            renderPage(photos[index].url, photos[index].caption, getVoteString(response.record));
+        },
+        error:function (response) {
+            var index = Math.floor(Math.random() * photos.length);
+            renderPage(photos[index].url, photos[index].caption, getVoteString(null));
+        }
+    });
+}
+
+function getVoteString(records) {
+
+    if (!records) {
+        voteString = "There was an error loading the previous votes for this vehicle.";
+    } else {
+        var voteString = '';
+        var size = records.length;
+        if (size == 0) {
+            voteString = "No votes cast yet for this vehicle.";
+        }
+        else {
+            var items = 0;
+            var total = 0;
+            for (var i = 0; i < size; i++) {
+                var value = parseInt(records[i].Version__c);
+                if (!isNaN(value)) {
+                    items++;
+                    total += value;
+                }
+            }
+            if (items == 0) {
+                voteString = "No votes cast yet for this vehicle.";
+            }
+            else {
+                var avg = total/items;
+                voteString = "Previously Rated: " + avg.toFixed(1) + " (" + items + ((items == 1) ? " vote" : " votes") + ")";
+            }
+        }
+    }
+    return voteString;
+}
+
+function renderPage(imageUrl, imageCaption, voteString) {
+
+    $('#RESULTS_CONTAINER').html('<p style="font-weight:bold; font-size:24px;">Am I HOT, or NOT?</p>');
+    $('#RESULTS_CONTAINER').append('<img id="randomImage" src="' + imageUrl + '">');
+    $('#RESULTS_CONTAINER').append("<br>");
+    $('#RESULTS_CONTAINER').append(imageCaption);
+    $('#RESULTS_CONTAINER').append("<br>");
+    $('#RESULTS_CONTAINER').append(voteString);
+    $('#RESULTS_CONTAINER').append("<br>");
+    $('#RESULTS_CONTAINER').append('<div id="radio"></div>');
+    $('#radio').append('<input type="radio" id="vote1" name="radio" value="1"/><label for="vote1">1</label>');
+    $('#radio').append('<input type="radio" id="vote2" name="radio"/><label for="vote2">2</label>');
+    $('#radio').append('<input type="radio" id="vote3" name="radio"/><label for="vote3">3</label>');
+    $('#radio').append('<input type="radio" id="vote4" name="radio"/><label for="vote4">4</label>');
+    $('#radio').append('<input type="radio" id="vote5" name="radio"/><label for="vote5">5</label>');
+    $('#radio').append('<input type="radio" id="vote6" name="radio"/><label for="vote6">6</label>');
+    $('#radio').append('<input type="radio" id="vote7" name="radio"/><label for="vote7">7</label>');
+    $('#radio').append('<input type="radio" id="vote8" name="radio"/><label for="vote8">8</label>');
+    $('#radio').append('<input type="radio" id="vote9" name="radio"/><label for="vote9">9</label>');
+    $('#radio').append('<input type="radio" id="vote10" name="radio"/><label for="vote10">10</label>');
+    $('#RESULTS_CONTAINER').append("<br>");
+    $('#RESULTS_CONTAINER').append('<button type="button" onclick="nextImage()">Skip Vehicle</button>');
+    $( '#radio' ).buttonset().click(function() {
+        var key = $("input[name='radio']:checked").attr('id');
+        if(typeof(key) != "undefined") {
+            createVote(key.slice(4));
+            nextImage();
+        }
+    });
+}
+
+function getPhotos() {
+    var photos, numGroups, numPhotos;
+
+    photos = new Array();
+    numGroups = (photoData instanceof Array) ? photoData.length : 0;
+    for (var i = 0; i < numGroups; i++) {
+        if (photoData[i].subType == 'exterior' && photoData[i].shotTypeAbbreviation == 'FQ') {
+            numPhotos = (photoData[i].photoSrcs instanceof Array) ? photoData[i].photoSrcs.length : 0;
+            for (var j = 0; j < numPhotos; j++) {
+                var onePhoto = new Object();
+                onePhoto.caption = photoData[i].captionTranscript;
+                onePhoto.url = photoBaseUrl() + '/' + photoData[i].photoSrcs[j];
+                photos.push(onePhoto);
+            }
+        }
+    }
+    return photos;
+}
+
+function nextImage() {
+
+    loadRandomImage();
+}
+
+function countMakes() {
+    var numMakes;
+
+    numMakes = (makeModelData.makeHolder instanceof Array) ? makeModelData.makeHolder.length : 0;
+    return numMakes;
+}
+
+function countModels(makeIndex) {
+    var numModels;
+
+    numModels = (makeModelData.makeHolder[makeIndex].models instanceof Array) ? makeModelData.makeHolder[makeIndex].models.length : 0;
+    return numModels;
+}
+
+function countModelYears() {
+    var numModelYears;
+
+    numModelYears = (modelYearData.modelYearHolder instanceof Array) ? modelYearData.modelYearHolder.length : 0;
+    return numModelYears;
+}
+
+function countStyles(modelYearIndex) {
+    var numStyles;
+
+    numStyles = (modelYearData.modelYearHolder[modelYearIndex].styles instanceof Array) ? modelYearData.modelYearHolder[modelYearIndex].styles.length : 0;
+    return numStyles;
+}
+
+function showMsg(data) {
+
+    $('#RESULTS_CONTAINER').html(data);
+}
+
+function showError(data) {
+
+    showMsg('Error, ' + data);
+    $('#RESULTS_CONTAINER').append("<br>");
+    $('#RESULTS_CONTAINER').append('<button type="button" onclick="nextImage()">Try Again</button>');
+}
+
+function createVote(value) {
+
+    var newRec = {"record":[{"Application__c":"HotOrNotAutos","Name":currentMake+"##"+currentModel+"##"+currentStyle,"Version__c":value}]};
+    $.ajax({
+        dataType:'json',
+        type : "POST",
+        url:'http://' + location.host + '/rest/db/DFAC_Shared_View__c?app_name=HotOrNotAutos',
+        data:JSON.stringify(newRec),
+        cache:false,
+        processData: false,
+        success:function (response) {
+        },
+        error: function(response) {
+            showError("There was an error saving the vote data.");
+        }
+    });
+}
+
+</script>
+
+</head>
+<body>
+<p>Edmunds.com via DreamFactory DirectConnect</p>
+<p>&nbsp;</p>
+<div id="RESULTS_CONTAINER">&nbsp;</div>
+</body>
+</html>

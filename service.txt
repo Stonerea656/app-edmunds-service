@@ -1,0 +1,9 @@
+Go to the services tab in the admin app and create a new service with the following settings.
+
+Type: Remote Web Service
+Service Name: Edmunds.com
+API Name: edmunds
+Description: whatever
+Base URL: http://api.edmunds.com/v1/api/
+Parameters: fmt=json&api_key=zjn482fpg27rjqgtvjryjks5
+Active: true
