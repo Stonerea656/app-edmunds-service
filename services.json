@@ -1,0 +1,21 @@
+[
+    {
+        "name": "Edmunds API",
+        "api_name": "edmunds",
+        "description": null,
+        "is_active": 1,
+        "type": "Remote Web Service",
+        "base_url": "http://api.edmunds.com/v1/api/",
+        "parameters": [
+            {
+                "name": "fmt",
+                "value": "json"
+            },
+            {
+                "name": "api_key",
+                "value": "zjn482fpg27rjqgtvjryjks5"
+            }
+        ],
+        "headers": []
+    }
+]
