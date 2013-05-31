@@ -27,7 +27,7 @@ $(document).ready(function() {
     showMsg('Loading makes and models...');
     $.ajax({
         dataType:'json',
-        url:'http://' + location.host + '/rest/edmunds/vehicle/makerepository/findall',
+        url:location.protocol + '//' + location.host + '/rest/edmunds/vehicle/makerepository/findall',
         data:'app_name=HotOrNotAutos&method=GET',
         cache:false,
         success:function (response) {
@@ -74,7 +74,7 @@ function loadRandomImage() {
     // get model years for selected make and model
     $.ajax({
         dataType:'json',
-        url:'http://' + location.host + '/rest/edmunds/vehicle/modelyearrepository/findmodelyearsbymakemodel',
+        url:location.protocol + '//' + location.host + '/rest/edmunds/vehicle/modelyearrepository/findmodelyearsbymakemodel',
         data:'app_name=HotOrNotAutos&method=GET&make=' + makeName + '&model=' + modelName,
         cache:false,
         success:function (response) {
@@ -111,7 +111,7 @@ function getPhotosByStyle(styleId) {
     // get photos for selected styleId
     $.ajax({
         dataType:'json',
-        url:'http://' + location.host + '/rest/edmunds/vehiclephoto/service/findphotosbystyleid',
+        url:location.protocol + '//' + location.host + '/rest/edmunds/vehiclephoto/service/findphotosbystyleid',
         data:'app_name=HotOrNotAutos&method=GET&styleId=' + styleId,
         cache:false,
         success:function (response) {
@@ -135,8 +135,8 @@ function processPhotoData(data) {
     var name = currentMake+"##"+currentModel+"##"+currentStyle;
     $.ajax({
         dataType:'json',
-        url:'http://' + location.host + '/rest/db/DFAC_Shared_View__c',
-        data:'app_name=HotOrNotAutos&method=GET&filter=' + escape("Name='" + name + "'") + '&fields=' + escape('Id,Version__c'),
+        url:location.protocol + '//' + location.host + '/rest/db/Vote',
+        data:'app_name=HotOrNotAutos&method=GET&filter=' + escape("Name='" + name + "'") + '&fields=' + escape('Id,Value'),
         cache:false,
         success:function (response) {
             var index = Math.floor(Math.random() * photos.length);
@@ -163,7 +163,7 @@ function getVoteString(records) {
             var items = 0;
             var total = 0;
             for (var i = 0; i < size; i++) {
-                var value = parseInt(records[i].Version__c);
+                var value = parseInt(records[i].Value);
                 if (!isNaN(value)) {
                     items++;
                     total += value;
@@ -278,11 +278,11 @@ function showError(data) {
 
 function createVote(value) {
 
-    var newRec = {"record":[{"Application__c":"HotOrNotAutos","Name":currentMake+"##"+currentModel+"##"+currentStyle,"Version__c":value}]};
+    var newRec = {"record":[{"Name":currentMake+"##"+currentModel+"##"+currentStyle,"Value":value}]};
     $.ajax({
         dataType:'json',
         type : "POST",
-        url:'http://' + location.host + '/rest/db/DFAC_Shared_View__c?app_name=HotOrNotAutos',
+        url:location.protocol + '//' + location.host + '/rest/db/Vote?app_name=HotOrNotAutos',
         data:JSON.stringify(newRec),
         cache:false,
         processData: false,
@@ -298,7 +298,7 @@ function createVote(value) {
 
 </head>
 <body>
-<p>Edmunds.com via DreamFactory DirectConnect</p>
+<p>Edmunds.com via DreamFactory</p>
 <p>&nbsp;</p>
 <div id="RESULTS_CONTAINER">&nbsp;</div>
 </body>
