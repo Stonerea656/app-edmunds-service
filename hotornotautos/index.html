@@ -1,12 +1,9 @@
 <html>
 <head>
 <meta charset="utf-8">
-<!-- jQuery Imports -->
-<script type="text/javascript" src="/public/web-core/js/jquery.js"></script>
-<script type="text/javascript" src="/public/web-core/js/jquery-ui-1.9.2.custom.min.js"></script>
-<link rel="stylesheet" href="/public/web-core/css/custom-theme/jquery-ui-1.8.16.custom.css" type="text/css" />
-<!-- DF Imports -->
-
+<link rel="stylesheet" href="//code.jquery.com/ui/1.10.3/themes/smoothness/jquery-ui.css">
+<script src="//code.jquery.com/jquery-1.9.1.js"></script>
+<script src="//code.jquery.com/ui/1.10.3/jquery-ui.js"></script>
 <script type="text/javascript">
 
 var makeModelData = null;
@@ -15,6 +12,7 @@ var photoData = null;
 var currentMake = '';
 var currentModel = '';
 var currentStyle = '';
+var baseUrl = location.protocol + '//' + location.host;
 
 function photoBaseUrl() {
 
@@ -27,7 +25,7 @@ $(document).ready(function() {
     showMsg('Loading makes and models...');
     $.ajax({
         dataType:'json',
-        url:location.protocol + '//' + location.host + '/rest/edmunds/vehicle/makerepository/findall',
+        url: baseUrl + '/rest/edmunds/vehicle/makerepository/findall',
         data:'app_name=HotOrNotAutos&method=GET',
         cache:false,
         success:function (response) {
@@ -74,7 +72,7 @@ function loadRandomImage() {
     // get model years for selected make and model
     $.ajax({
         dataType:'json',
-        url:location.protocol + '//' + location.host + '/rest/edmunds/vehicle/modelyearrepository/findmodelyearsbymakemodel',
+        url:baseUrl + '/rest/edmunds/vehicle/modelyearrepository/findmodelyearsbymakemodel',
         data:'app_name=HotOrNotAutos&method=GET&make=' + makeName + '&model=' + modelName,
         cache:false,
         success:function (response) {
@@ -111,7 +109,7 @@ function getPhotosByStyle(styleId) {
     // get photos for selected styleId
     $.ajax({
         dataType:'json',
-        url:location.protocol + '//' + location.host + '/rest/edmunds/vehiclephoto/service/findphotosbystyleid',
+        url:baseUrl + '/rest/edmunds/vehiclephoto/service/findphotosbystyleid',
         data:'app_name=HotOrNotAutos&method=GET&styleId=' + styleId,
         cache:false,
         success:function (response) {
@@ -135,7 +133,7 @@ function processPhotoData(data) {
     var name = currentMake+"##"+currentModel+"##"+currentStyle;
     $.ajax({
         dataType:'json',
-        url:location.protocol + '//' + location.host + '/rest/db/Vote',
+        url:baseUrl + '/rest/db/Vote',
         data:'app_name=HotOrNotAutos&method=GET&filter=' + escape("Name='" + name + "'") + '&fields=' + escape('Id,Value'),
         cache:false,
         success:function (response) {
@@ -183,7 +181,7 @@ function getVoteString(records) {
 
 function renderPage(imageUrl, imageCaption, voteString) {
 
-    $('#RESULTS_CONTAINER').html('<p style="font-weight:bold; font-size:24px;">Am I HOT, or NOT?</p>');
+    $('#RESULTS_CONTAINER').html('<p style="font-weight:bold; font-size:24px;">HOT or NOT?</p>');
     $('#RESULTS_CONTAINER').append('<img id="randomImage" src="' + imageUrl + '">');
     $('#RESULTS_CONTAINER').append("<br>");
     $('#RESULTS_CONTAINER').append(imageCaption);
@@ -282,7 +280,7 @@ function createVote(value) {
     $.ajax({
         dataType:'json',
         type : "POST",
-        url:location.protocol + '//' + location.host + '/rest/db/Vote?app_name=HotOrNotAutos',
+        url:baseUrl + '/rest/db/Vote?app_name=HotOrNotAutos',
         data:JSON.stringify(newRec),
         cache:false,
         processData: false,
