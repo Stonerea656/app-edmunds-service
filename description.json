@@ -1,6 +1,6 @@
 {
-    "api_name": "hotornotautos",
-    "name": "HotOrNotAutos",
+    "api_name": "edmunds",
+    "name": "Edmunds",
     "description": "A sample application showing how to make RESTful calls to a remote web service.",
     "is_active": 1,
     "url": "/index.html",
